@@ -28,7 +28,15 @@ Here are some examples of vehicle and non-vehicle HOG images.  Each bin in the H
 
 ![alt text][image1]
 
-There were many hyperparameters to mess around with for this.  After research and experimentation, I went with this:
+
+
+####2. Explain how you settled on your final choice of HOG parameters.
+
+I tried various combinations of parameters and...
+
+####3. Describe how (and identify where in your code) you trained a classifier using your selected HOG features (and color features if you used them).
+
+There were many hyperparameters to mess around with for this.  After research and experimentation, I went with these:
 
 | Hyperparamter        | Value   | 
 |:-------------:|:-------------:| 
@@ -39,24 +47,20 @@ There were many hyperparameters to mess around with for this.  After research an
 | hist_bins      | 32   |
 | spatial_size   | (32,32)   |
 
-,32)
-hist_bins = 32
-I then explored different color spaces and different `skimage.hog()` parameters (`orientations`, `pixels_per_cell`, and `cells_per_block`).  I grabbed random images from each of the two classes and displayed them to get a feel for what the `skimage.hog()` output looks like.
-
-Here is an example using the `YCrCb` color space and HOG parameters of `orientations=8`, `pixels_per_cell=(8, 8)` and `cells_per_block=(2, 2)`:
 
 
-![alt text][image2]
+Messing with bin sizes and pixels per cell wasn't really moving the needle on my classifier accuracy score so I tried to pick consistent decent values and then I rotated through the color spaces.  The color space 'YCrCb' had a clear positive effect, which was an interesting result.
 
-####2. Explain how you settled on your final choice of HOG parameters.
 
-I tried various combinations of parameters and...
+I trained a linear SVM in the first cell of Part 2.  I used Scikit's `StandardScaler` on all my X values to ensure some features weren't unfairly overshadowing others because of their raw values.  The y values were simply 1's or 0's that could be built with in one line with the help of numpy – `y = np.hstack((np.ones(len(car_features)), np.zeros(len(notcar_features))))`.  When training the model with Scikit's LinearSVC(), I was able to get mid 90's accuracy scores, and with a small amount of tuning I reached the high 90's.  
 
-####3. Describe how (and identify where in your code) you trained a classifier using your selected HOG features (and color features if you used them).
+After training my final model, I learned from other students that the dataset actually contained many extremely similar images.  That means it's very likely that many images in the test set were virtually also in the training set.  This was an interesting data problem that I had never encountered.  It did not necessarily mean that my model was overfitting, but it did mean that I could not rely on the accuracy score.  Luckily, in my case, I wasn't relying heavily on the accuracy score anyways.  The true test was how the bounding boxes looked in the video.  It definitely served as warning, though, to always try to understand your dataset as much as possible.
 
-I trained a linear SVM using...
+
 
 ###Sliding Window Search
+![alt text][image2]
+
 
 ####1. Describe how (and identify where in your code) you implemented a sliding window search.  How did you decide what scales to search and how much to overlap windows?
 
