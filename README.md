@@ -71,15 +71,14 @@ The only cell of Part 3 defines methods that will be used for the sliding window
 
 The next method, `search_windows`, is designed to take in the windows coordinates from the previous method, along with a classifer (the SVM we trained earlier), and return the windows for which the classifier said yes, there's a car.  This is probably where most of the computation in the notebook takes place, because hundreds of windows are run through the classifier for each frame of the video.
 
-The last method is simply for drawing boxes.
-
-Messing with the window paramters, size and overlap, turned out to be more effective for changing and improving the video than the HOG hyperparamters.  I tried many different sizes and combinations of sizes for the windows.  Having multiple sizes with heavy overlap definitely increases the effectiveness of the heatmap in the nex portion, because it will clearly mark the car areas even if a single given window may be inaccurate.  The params I ended up with were windows of sizes 50, 100, and 140, and an overlap of 60%.  I only checked windows in the 'lower right' region of the image because that's what we cared about.
+Messing with the window paramters, size and overlap, turned out to be more effective for changing and improving the video than the HOG hyperparamters.  I tried many different sizes and combinations of sizes for the windows.  Having multiple sizes with heavy overlap definitely increases the effectiveness of the heatmap in the next portion, because it will clearly mark the car areas even if a single given window may be inaccurate.  The params I ended up with were windows of sizes 50, 100, and 140, and an overlap of 60%.  I only checked windows in the 'lower right' region of the image because that's what we cared about.
 
 ####2. Show some examples of test images to demonstrate how your pipeline is working.  What did you do to optimize the performance of your classifier?
+
+This image shows the full process for finding the car bounding boxes on six example images.
 ![alt text][image3]
+The heatmap images are derived from the 'hot' car windows described above.  The more hot windows overlap onto a pixel of the heatmap, the brighter the color.  The final image runs uses Scipy's `label` method on the heatmap images to find the bounding boxes around the lit up areas.  The important hyperparameter to mess with here is the heat threshold, which determines how many overlapping hot windows are needed to light up the heatmap.  It's not very useful, however, to tune the hyperparameters on the test images, since the video procesing function handles 'heat' differently.
 
-
-Ultimately I searched on two scales using YCrCb 3-channel HOG features plus spatially binned color and histograms of color in the feature vector, which provided a nice result.  Here are some example images:
 
 ---
 
@@ -91,17 +90,7 @@ Here's a [link to my video result](./output_images/output.mp4)
 
 ####2. Describe how (and identify where in your code) you implemented some kind of filter for false positives and some method for combining overlapping bounding boxes.
 
-I recorded the positions of positive detections in each frame of the video.  From the positive detections I created a heatmap and then thresholded that map to identify vehicle positions.  I then used `scipy.ndimage.measurements.label()` to identify individual blobs in the heatmap.  I then assumed each blob corresponded to a vehicle.  I constructed bounding boxes to cover the area of each blob detected.  
-
-Here's an example result showing the heatmap from a series of frames of video, the result of `scipy.ndimage.measurements.label()` and the bounding boxes then overlaid on the last frame of video:
-
-### Here are six frames and their corresponding heatmaps:
-
-
-### Here is the output of `scipy.ndimage.measurements.label()` on the integrated heatmap from all six frames:
-
-### Here the resulting bounding boxes are drawn onto the last frame in the series:
-
+The key difference between the pipeline for the images and the pipeline for the video, is that the pipeline in the video shares 'hot window' data between frames.  Specifically, in the first cell of Part 5, the method is set up with the global list variable `RECENT_HOT_WINDOW_SETS` to look at the some number of `prev_frames_considered`.  It's designed so that every frame it looks at all the current hot windows, along with all the hot windows of the previous `n` frames, and puts all of those together into the heatmap.  If we set `prev_frames_considered = 8`, a single pixel could show up in a range of hot windows between 0 and approximately 30 (because of window sizes and overlap). This will make spurious Yes-classifications by the SVM lose power, because they hopefully don't show up in nearly as many hot windows compared to the actual cars regions.  Logically, the heat threshold had to be much higher for the video than for the image (because of all the frames considered).  That technique eliminated all but a few of the false positives in the video.  
 
 
 ---
@@ -110,4 +99,10 @@ Here's an example result showing the heatmap from a series of frames of video, t
 
 ####1. Briefly discuss any problems / issues you faced in your implementation of this project.  Where will your pipeline likely fail?  What could you do to make it more robust?
 
-Here I'll talk about the approach I took, what techniques I used, what worked and why, where the pipeline might fail and how I might improve it if I were going to pursue this project further.  
+One major issue was related to something I mentioned above regarding the dataset.  I was spending a lot of time tuning my HOG parameters and relying on my accuracy score to tell me if I was improving.  Since I was doing different train-test-split shuffling each run, it's likely that my changes were coming more from random shuffles than they were from the changes, given the fact that many images may have appeared in both the training and test sets.  It probably would have been smarter to disregard the accuracy score and only care about the video results.
+
+I also had issues getting the heatmap to illuminate cars enough before I added 3 full window sizes and 60% overlap.  I didn't realize it was needed at first, because I was easily seeing some rectangles around the cars in the images with just one window size, but by the time I reached the video, a ton of inaccuracies and noise showed up.  In particular, when the road changed color, the bounding box completely disappeared around the car.  After making the change, the box gets a bit smaller at that point, but doesn't disappear– a clear improvement.
+
+
+
+
