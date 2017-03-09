@@ -20,9 +20,9 @@ Here are links to the labeled data for [vehicle](https://s3.amazonaws.com/udacit
 
 ####1. Explain how (and identify where in your code) you extracted HOG features from the training images.
 
-In the second cell of Part 1 of the [IPython Notebook](./project.ipynb), I defined three methods that assist in extracting HOG features – `color_hist`, `get_hog_features`, and `bin_spatial`, .  The first of these computes histograms of the color values in an image (in any common color space), and the other two build histograms of gradient directions in a spatially binned image.  They take advantage of Scikit-Image's `hog` method.
+In the second cell of Part 1 of the [IPython Notebook](./project.ipynb), I defined three methods that assist in extracting HOG features – `color_hist`, `get_hog_features`, and `bin_spatial`.  The first of these computes histograms of the color values in an image (in any common color space), and the other two build histograms of gradient directions in a spatially binned image.  They take advantage of Scikit-Image's `hog` method.
 
-The two other methods in that cell – `extract_features` and `single_img_features` just combine the the other three together and allow you to pass in arguments for selecting any or all of the three above to put into your feature vector.  These are handy for exploring which features are most useful.  The only difference between the two methods is that `extract_features` runs on lists and `single_img_features` runs on single images.
+The two other methods in that cell – `extract_features` and `single_img_features` just combine the other three together and allow you to pass in arguments for putting any or all of the three into your output feature vector.  These are handy for exploring which features are most useful.  The only difference between the two methods is that `extract_features` runs on lists and `single_img_features` runs on single images.
 
 Here are some examples of vehicle and non-vehicle HOG images.  Each bin in the HOG image essentially shows one vector that is the sum of the gradient direction vectors of every pixel in the bin.  This provides a flexible, edge-detecting signature for car and non-car images, and it will be a crucial feature for the classifier.
 
@@ -32,9 +32,7 @@ Here are some examples of vehicle and non-vehicle HOG images.  Each bin in the H
 
 ####2. Explain how you settled on your final choice of HOG parameters.
 
-I tried various combinations of parameters and...
 
-####3. Describe how (and identify where in your code) you trained a classifier using your selected HOG features (and color features if you used them).
 
 There were many hyperparameters to mess around with for this.  After research and experimentation, I went with these:
 
@@ -51,15 +49,21 @@ There were many hyperparameters to mess around with for this.  After research an
 
 Messing with bin sizes and pixels per cell wasn't really moving the needle on my classifier accuracy score so I tried to pick consistent decent values and then I rotated through the color spaces.  The color space 'YCrCb' had a clear positive effect, which was an interesting result.
 
+####3. Describe how (and identify where in your code) you trained a classifier using your selected HOG features (and color features if you used them).
 
-I trained a linear SVM in the first cell of Part 2.  I used Scikit's `StandardScaler` on all my X values to ensure some features weren't unfairly overshadowing others because of their raw values.  The y values were simply 1's or 0's that could be built with in one line with the help of numpy – `y = np.hstack((np.ones(len(car_features)), np.zeros(len(notcar_features))))`.  When training the model with Scikit's LinearSVC(), I was able to get mid 90's accuracy scores, and with a small amount of tuning I reached the high 90's.  
+I trained a linear SVM in the first cell of Part 2.  I used Scikit's `StandardScaler` on all my `X` values to ensure some features weren't unfairly overshadowing others because of their raw values.  The `y` values were simply 1's or 0's that could be built with in one line with the help of handy numpy methods:
 
-After training my final model, I learned from other students that the dataset actually contained many extremely similar images.  That means it's very likely that many images in the test set were virtually also in the training set.  This was an interesting data problem that I had never encountered.  It did not necessarily mean that my model was overfitting, but it did mean that I could not rely on the accuracy score.  Luckily, in my case, I wasn't relying heavily on the accuracy score anyways.  The true test was how the bounding boxes looked in the video.  It definitely served as warning, though, to always try to understand your dataset as much as possible.
+`y = np.hstack((np.ones(len(car_features)), np.zeros(len(notcar_features))))`  
 
+When training the model with Scikit's LinearSVC(), I was quickly able to get mid-90's accuracy scores, and with a small amount of tuning I reached the high-90's.  
+
+After training my final model, I learned from other students that the dataset actually contained many extremely similar images.  That means that many images in the test set were probably (virtually) also in the training set.  This was an interesting data problem that I had never encountered.  It did not necessarily mean that my model was overfitting, but it did mean that I could not rely on the accuracy score.  Luckily, in my case, I wasn't relying heavily on the accuracy score anyways, because the true test was how the bounding boxes looked in the video.  It definitely served as warning, though, to always try to understand your dataset as much as possible.
+
+This shows how accurate the model performing on test images (using a preliminary sliding windows method), and it's what I used to tune the hyperparamters.  It's clearly not perfect, but strategies in the next section try to make up for its flaws:
+![alt text][image2]
 
 
 ###Sliding Window Search
-![alt text][image2]
 
 
 ####1. Describe how (and identify where in your code) you implemented a sliding window search.  How did you decide what scales to search and how much to overlap windows?
