@@ -20,7 +20,7 @@ Here are links to the labeled data for [vehicle](https://s3.amazonaws.com/udacit
 
 ####1. Explain how (and identify where in your code) you extracted HOG features from the training images.
 
-In the second cell of Part 1 of the [IPython Notebook](./project.ipynb), I defined three methods that assist in extracting HOG features – `color_hist`, `get_hog_features`, and `bin_spatial`.  The first of these computes histograms of the color values in an image (in any common color space), and the other two build histograms of gradient directions in a spatially binned image.  They take advantage of Scikit-Image's `hog` method.
+In the second cell of Part 1 of the [IPython Notebook](./project.ipynb), I defined three methods that assist in extracting HOG features – `color_hist`, `get_hog_features`, and `bin_spatial`.  The first of these computes histograms of color values in an image (in any common color space), and the other two build histograms of gradient directions in a spatially binned image.  They take advantage of Scikit's `hog` method.
 
 The two other methods in that cell – `extract_features` and `single_img_features` just combine the other three together and allow you to pass in arguments for putting any or all of the three into your output feature vector.  These are handy for exploring which features are most useful.  The only difference between the two methods is that `extract_features` runs on lists and `single_img_features` runs on single images.
 
@@ -67,12 +67,17 @@ This shows how accurate the model performing on test images (using a preliminary
 
 
 ####1. Describe how (and identify where in your code) you implemented a sliding window search.  How did you decide what scales to search and how much to overlap windows?
+The only cell of Part 3 defines methods that will be used for the sliding window process: `slide_window`, `search_windows` and `draw_boxes`.  The first, `slide_window`, simply returns coordinates for all possible windows given a few inputs.  The key inputs are size of the window, the region of the image you care about, and the amount of overlap allowed between windows.
 
-I decided to search random window positions at random scales all over the image and came up with this (ok just kidding I didn't actually ;):
+The next method, `search_windows`, is designed to take in the windows coordinates from the previous method, along with a classifer (the SVM we trained earlier), and return the windows for which the classifier said yes, there's a car.  This is probably where most of the computation in the notebook takes place, because hundreds of windows are run through the classifier for each frame of the video.
 
-![alt text][image3]
+The last method is simply for drawing boxes.
+
+Messing with the window paramters, size and overlap, turned out to be more effective for changing and improving the video than the HOG hyperparamters.  I tried many different sizes and combinations of sizes for the windows.  Having multiple sizes with heavy overlap definitely increases the effectiveness of the heatmap in the nex portion, because it will clearly mark the car areas even if a single given window may be inaccurate.  The params I ended up with were windows of sizes 50, 100, and 140, and an overlap of 60%.  I only checked windows in the 'lower right' region of the image because that's what we cared about.
 
 ####2. Show some examples of test images to demonstrate how your pipeline is working.  What did you do to optimize the performance of your classifier?
+![alt text][image3]
+
 
 Ultimately I searched on two scales using YCrCb 3-channel HOG features plus spatially binned color and histograms of color in the feature vector, which provided a nice result.  Here are some example images:
 
