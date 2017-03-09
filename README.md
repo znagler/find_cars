@@ -8,7 +8,7 @@ The goals / steps of this project are the following:
 * Run the pipeline on a video stream and create a heat map of recurring detections frame by frame to reject outliers and follow detected vehicles.
 * Estimate a bounding box for vehicles detected.
 
-Here are links to the labeled data for [vehicle](https://s3.amazonaws.com/udacity-sdc/Vehicle_Tracking/vehicles.zip) and [non-vehicle](https://s3.amazonaws.com/udacity-sdc/Vehicle_Tracking/non-vehicles.zip) examples to train your classifier.  These example images come from a combination of the [GTI vehicle image database](http://www.gti.ssr.upm.es/data/Vehicle_database.html), the [KITTI vision benchmark suite](http://www.cvlibs.net/datasets/kitti/), and examples extracted from the project video itself. 
+Here are links to the labeled data for [vehicle](https://s3.amazonaws.com/udacity-sdc/Vehicle_Tracking/vehicles.zip) and [non-vehicle](https://s3.amazonaws.com/udacity-sdc/Vehicle_Tracking/non-vehicles.zip) examples used in this project. 
 
 [//]: # (Image References)
 [image1]: ./output_images/car_and_noncar_hogs.png
@@ -20,12 +20,27 @@ Here are links to the labeled data for [vehicle](https://s3.amazonaws.com/udacit
 
 ####1. Explain how (and identify where in your code) you extracted HOG features from the training images.
 
-The code for this step is contained in the first code cell of the IPython notebook (or in lines # through # of the file called `some_file.py`).  
+In the second cell of Part 1 of the [IPython Notebook](./project.ipynb), I defined three methods that assist in extracting HOG features – `color_hist`, `get_hog_features`, and `bin_spatial`, .  The first of these computes histograms of the color values in an image (in any common color space), and the other two build histograms of gradient directions in a spatially binned image.  They take advantage of Scikit-Image's `hog` method.
 
-I started by reading in all the `vehicle` and `non-vehicle` images.  Here is an example of one of each of the `vehicle` and `non-vehicle` classes:
+The two other methods in that cell – `extract_features` and `single_img_features` just combine the the other three together and allow you to pass in arguments for selecting any or all of the three above to put into your feature vector.  These are handy for exploring which features are most useful.  The only difference between the two methods is that `extract_features` runs on lists and `single_img_features` runs on single images.
+
+Here are some examples of vehicle and non-vehicle HOG images.  Each bin in the HOG image essentially shows one vector that is the sum of the gradient direction vectors of every pixel in the bin.  This provides a flexible, edge-detecting signature for car and non-car images, and it will be a crucial feature for the classifier.
 
 ![alt text][image1]
 
+There were many hyperparameters to mess around with for this.  After research and experimentation, I went with this:
+
+| Hyperparamter        | Value   | 
+|:-------------:|:-------------:| 
+| color_space   | 'YCrCb'       | 
+| orient       |  9      |
+| pix_per_cell    |8    |
+| cell_per_block     | 2     |
+| hist_bins      | 32   |
+| spatial_size   | (32,32)   |
+
+,32)
+hist_bins = 32
 I then explored different color spaces and different `skimage.hog()` parameters (`orientations`, `pixels_per_cell`, and `cells_per_block`).  I grabbed random images from each of the two classes and displayed them to get a feel for what the `skimage.hog()` output looks like.
 
 Here is an example using the `YCrCb` color space and HOG parameters of `orientations=8`, `pixels_per_cell=(8, 8)` and `cells_per_block=(2, 2)`:
