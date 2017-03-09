@@ -13,7 +13,7 @@ Here are links to the labeled data for [vehicle](https://s3.amazonaws.com/udacit
 [//]: # (Image References)
 [image1]: ./output_images/car_and_noncar_hogs.png
 [image2]: ./output_images/simple_window_examples.png
-[image3]: ./output_images/car_window_process.png
+[image3]: ./output_images/car_windows.png
 [video1]: ./output_images/output.mp4
 
 **Please see all the code in the [IPython Notebook](./p5.ipynb)**
